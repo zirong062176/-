@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>📒 记账本 · 双币 + 兑换 + 借还款</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 24px 30px 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+        h1 {
+            margin-top: 0;
+            font-weight: 500;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #eaeef2;
+            padding-bottom: 16px;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0 16px 0;
+            border-bottom: 2px solid #eaeef2;
+            padding-bottom: 8px;
+        }
+        .tabs button {
+            padding: 8px 22px;
+            border: none;
+            border-radius: 30px;
+            background: #f1f4f9;
+            color: #5a6a7a;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tabs button:hover {
+            background: #e4e8ef;
+        }
+        .tabs button.active {
+            background: #2d7aff;
+            color: white;
+        }
+        .tab-page {
+            display: none;
+        }
+        .tab-page.active {
+            display: block;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            background: #f8fafc;
+            padding: 18px 20px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            align-items: flex-end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 100px;
+            min-width: 80px;
+        }
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a5b6e;
+            margin-bottom: 4px;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 8px 10px;
+            border: 1px solid #d0d9e6;
+            border-radius: 10px;
+            font-size: 14px;
+            background: white;
+            transition: 0.15s;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #2d7aff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(45, 122, 255, 0.15);
+        }
+        .btn-add {
+            background: #2d7aff;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 9px 24px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            height: 42px;
+            white-space: nowrap;
+        }
+        .btn-add:hover {
+            background: #1a5fd9;
+            transform: scale(1.02);
+        }
+        .exchange-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            background: #f0f7ff;
+            padding: 14px 20px;
+            border-radius: 16px;
+            margin-bottom: 14px;
+            align-items: flex-end;
+            border: 1px dashed #66aaff;
+        }
+        .exchange-row .form-group {
+            flex: 1 1 100px;
+            min-width: 80px;
+        }
+        .exchange-row .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e4b7a;
+        }
+        .exchange-row .form-group input {
+            border-color: #99ccff;
+        }
+        .exchange-row .form-group input:focus {
+            border-color: #2d7aff;
+        }
+        .btn-exchange {
+            background: #1a8a3a;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 9px 24px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            height: 42px;
+            white-space: nowrap;
+        }
+        .btn-exchange:hover {
+            background: #0f6d2e;
+            transform: scale(1.02);
+        }
+        .exchange-hint {
+            font-size: 12px;
+            color: #4a7a9e;
+            align-self: center;
+            margin-left: 4px;
+        }
+        .month-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            margin: 6px 0 18px 0;
+            font-size: 18px;
+            font-weight: 500;
+            color: #1e293b;
+        }
+        .month-nav button {
+            background: #eef2f6;
+            border: none;
+            border-radius: 30px;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .month-nav button:hover {
+            background: #d0d9e6;
+        }
+        .month-nav .month-label {
+            min-width: 160px;
+            text-align: center;
+        }
+        .backup-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px 20px;
+            background: #f5f0ea;
+            padding: 12px 20px;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            border: 1px solid #e0d5c8;
+        }
+        .backup-row .label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #5a4a3a;
+        }
+        .backup-row .hint {
+            font-size: 13px;
+            color: #8a7a6a;
+            margin-right: auto;
+        }
+        .btn-backup {
+            background: #7a6a5a;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-backup:hover {
+            background: #5a4a3a;
+            transform: scale(1.02);
+        }
+        .btn-backup.export {
+            background: #2d7aff;
+        }
+        .btn-backup.export:hover {
+            background: #1a5fd9;
+        }
+        .btn-backup.import {
+            background: #8a6a3a;
+        }
+        .btn-backup.import:hover {
+            background: #6a4a2a;
+        }
+        #importFileInput {
+            display: none;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .summary-grid.row2 {
+            grid-template-columns: repeat(5, 1fr);
+            margin-bottom: 28px;
+        }
+        .card {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 10px 14px;
+            border: 1px solid #eef2f6;
+            min-width: 0;
+        }
+        .card .label {
+            font-size: 12px;
+            color: #5e6f82;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .card .amount {
+            font-size: 19px;
+            font-weight: 600;
+            margin-top: 2px;
+            white-space: nowrap;
+        }
+        .card .amount small {
+            font-size: 12px;
+            font-weight: 400;
+            color: #7e8f9e;
+            margin-left: 4px;
+        }
+        .card.income .amount {
+            color: #0f7b3a;
+        }
+        .card.expense .amount {
+            color: #c2413a;
+        }
+        .card.total .amount {
+            color: #1e293b;
+        }
+        .card.asset .amount {
+            color: #1e4b7a;
+        }
+        .card.balance .amount {
+            color: #0f6b8a;
+        }
+        .card.rate-card .amount {
+            color: #8a6a1a;
+        }
+        .card.rate-card input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 2px solid #d4b86a;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            background: #fffdf0;
+            color: #6a4a1a;
+        }
+        .card.rate-card input:focus {
+            border-color: #b8963a;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(184, 150, 58, 0.2);
+        }
+        .card.mmk-bg .amount {
+            background: linear-gradient(145deg, #1a7a3a, #0f5d2a);
+            color: #ffd700;
+            padding: 6px 12px;
+            border-radius: 10px;
+            display: inline-block;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            font-size: 22px;
+        }
+        .card.mmk-bg .label {
+            color: #1a5a2a;
+        }
+        .card.usd-bg .amount {
+            background: linear-gradient(145deg, #8fbc8f, #6a9a6a);
+            color: #f5f5dc;
+            padding: 6px 12px;
+            border-radius: 10px;
+            display: inline-block;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            font-size: 22px;
+        }
+        .card.usd-bg .label {
+            color: #2a5a2a;
+        }
+        .card.loan .amount {
+            color: #d48a1a;
+        }
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            background: #f8fafc;
+            padding: 10px 18px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            align-items: center;
+        }
+        .filter-row label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5b6e;
+        }
+        .filter-row select,
+        .filter-row input {
+            padding: 6px 12px;
+            border-radius: 10px;
+            border: 1px solid #d0d9e6;
+            font-size: 14px;
+            background: white;
+        }
+        .filter-row .badge-summary {
+            margin-left: auto;
+            font-size: 14px;
+            color: #1e293b;
+        }
+        .filter-row .badge-summary .num {
+            font-weight: 700;
+            color: #2d7aff;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid #eef2f6;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            background: #f1f4f9;
+            font-weight: 600;
+            color: #2d3d4f;
+            padding: 10px 10px;
+            text-align: left;
+            white-space: nowrap;
+        }
+        td {
+            padding: 8px 10px;
+            border-top: 1px solid #eef2f6;
+            vertical-align: middle;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge.income {
+            background: #dff0e5;
+            color: #0f7b3a;
+        }
+        .badge.expense {
+            background: #fde8e5;
+            color: #c2413a;
+        }
+        .badge.exchange {
+            background: #d4e6ff;
+            color: #1a4b7a;
+        }
+        .badge.loan-out {
+            background: #fef3d4;
+            color: #b8781a;
+        }
+        .badge.loan-in {
+            background: #d4f0e0;
+            color: #1a7a4a;
+        }
+        .del-btn {
+            background: none;
+            border: none;
+            color: #b0c0d0;
+            cursor: pointer;
+            font-size: 17px;
+            transition: 0.15s;
+            padding: 0 4px;
+        }
+        .del-btn:hover {
+            color: #c2413a;
+        }
+        .edit-btn {
+            background: none;
+            border: none;
+            color: #2d7aff;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.15s;
+            padding: 0 4px;
+            margin-right: 4px;
+        }
+        .edit-btn:hover {
+            color: #1a5fd9;
+        }
+        .save-edit-btn {
+            background: #0f7b3a;
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .save-edit-btn:hover {
+            background: #0a5d2a;
+        }
+        .cancel-edit-btn {
+            background: #b0c0d0;
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-left: 4px;
+        }
+        .cancel-edit-btn:hover {
+            background: #8a9aa8;
+        }
+        .editing-cell input,
+        .editing-cell select {
+            padding: 4px 6px;
+            border: 2px solid #2d7aff;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 100%;
+            min-width: 60px;
+            background: #f8fcff;
+        }
+        .editing-cell input:focus,
+        .editing-cell select:focus {
+            outline: none;
+            border-color: #1a5fd9;
+            box-shadow: 0 0 0 2px rgba(45, 122, 255, 0.2);
+        }
+        .editing-row td {
+            background: #f0f7ff;
+        }
+        .empty-msg {
+            text-align: center;
+            color: #a0b0c0;
+            padding: 30px 0;
+            font-size: 15px;
+        }
+        .footer-note {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #8a9aa8;
+            text-align: right;
+            border-top: 1px solid #eef2f6;
+            padding-top: 14px;
+        }
+        .footer-note span {
+            margin-left: 20px;
+        }
+        .note-cell {
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .note-cell:hover {
+            overflow: visible;
+            white-space: normal;
+            word-break: break-all;
+            background: #f8fafc;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            padding: 4px 8px;
+        }
+        @media (max-width: 900px) {
+            .summary-grid,
+            .summary-grid.row2 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .form-row,
+            .exchange-row,
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-add,
+            .btn-exchange {
+                margin-left: 0;
+            }
+            .month-nav {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .summary-grid,
+            .summary-grid.row2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .backup-row {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .backup-row .hint {
+                margin-right: 0;
+            }
+            .tabs button {
+                font-size: 13px;
+                padding: 6px 14px;
+            }
+            .filter-row .badge-summary {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📒 记账本 <span style="font-size:16px;font-weight:400;color:#6a7b8c;margin-left:8px;">双币 · 兑换 · 借还款</span></h1>
+
+        <div class="tabs">
+            <button class="active" data-tab="daily">📋 日常流水</button>
+            <button data-tab="loan">🤝 借还款记录</button>
+        </div>
+
+        <!-- TAB 1: 日常流水 -->
+        <div class="tab-page active" id="tabDaily">
+            <div class="form-row" id="formRow">
+                <div class="form-group">
+                    <label>📅 日期</label>
+                    <input type="date" id="dateInput" value="2026-08-22">
+                </div>
+                <div class="form-group">
+                    <label>👤 姓名</label>
+                    <input type="text" id="consumerInput" list="consumerList" placeholder="输入或选择">
+                    <datalist id="consumerList"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>📌 用途</label>
+                    <input type="text" id="reasonInput" list="reasonList" placeholder="输入或选择">
+                    <datalist id="reasonList"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>📂 类别</label>
+                    <select id="typeInput">
+                        <option value="支出">支出</option>
+                        <option value="收入">收入</option>
+                        <option value="借出">借出</option>
+                        <option value="还入">还入</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>💰 缅币 (K)</label>
+                    <input type="number" id="mmkInput" placeholder="0" step="1" value="0">
+                </div>
+                <div class="form-group">
+                    <label>💵 美元 ($)</label>
+                    <input type="number" id="usdInput" placeholder="0.00" step="0.01" value="0">
+                </div>
+                <div class="form-group">
+                    <label>📝 备注</label>
+                    <input type="text" id="noteInput" placeholder="可选">
+                </div>
+                <button class="btn-add" id="addBtn">➕ 添加记录</button>
+            </div>
+
+            <div class="exchange-row" id="exchangeRow">
+                <div class="form-group">
+                    <label>💵 美金 (USD)</label>
+                    <input type="number" id="exchangeUsdInput" placeholder="0.00" step="0.01" value="0">
+                </div>
+                <div class="form-group">
+                    <label>💱 该笔汇率</label>
+                    <input type="number" id="exchangeRateInput" step="0.01" value="3500">
+                </div>
+                <div class="form-group">
+                    <label>💰 兑换得缅币 (K)</label>
+                    <input type="number" id="exchangeMmkOutput" placeholder="0" step="1" value="0" readonly style="background:#eef2f6;">
+                </div>
+                <button class="btn-exchange" id="exchangeBtn">🔄 兑换并记录</button>
+                <span class="exchange-hint">↳ 从美金结余扣除，加入缅币结余</span>
+            </div>
+
+            <div class="backup-row">
+                <span class="label">💾 数据备份</span>
+                <span class="hint">导出所有记录 + 汇率，换手机也不丢</span>
+                <button class="btn-backup export" id="exportBtn">📤 导出备份</button>
+                <button class="btn-backup import" id="importBtn">📥 导入恢复</button>
+                <input type="file" id="importFileInput" accept=".json">
+            </div>
+
+            <div class="month-nav">
+                <button id="prevMonthBtn">◀</button>
+                <span class="month-label" id="monthLabel">2026年8月</span>
+                <button id="nextMonthBtn">▶</button>
+            </div>
+
+            <div class="summary-grid" id="summaryGridRow1"></div>
+            <div class="summary-grid row2" id="summaryGridRow2"></div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日期</th><th>姓名</th><th>用途</th><th>类别</th>
+                            <th>缅币 (K)</th><th>美元 ($)</th><th>汇率</th>
+                            <th>结余 (K)</th><th>结余 ($)</th><th>备注</th>
+                            <th style="width:70px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: 借还款记录 -->
+        <div class="tab-page" id="tabLoan">
+            <div class="filter-row">
+                <label>👤 筛选姓名：</label>
+                <select id="loanFilterName">
+                    <option value="all">全部</option>
+                </select>
+                <span class="badge-summary">
+                    🏦 净借出总额：<span class="num" id="netLoanTotalK">0</span> K &nbsp;|&nbsp; <span class="num" id="netLoanTotalUsd">0</span> $
+                </span>
+            </div>
+
+            <div class="summary-grid" id="loanSummary"></div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日期</th><th>姓名</th><th>类型</th>
+                            <th>缅币 (K)</th><th>美元 ($)</th><th>备注</th>
+                            <th style="width:36px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="loanBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            <span>💾 数据自动保存在浏览器中</span>
+            <span id="recordCount">共 0 笔</span>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  数据管理
+        // ============================================================
+        let records = [];
+        const STORAGE_KEY = 'my_account_records_v7';
+        let viewYear = 2026;
+        let viewMonth = 7;
+        let manualRate = 3500;
+        let editingRowIndex = null;
+
+        function loadData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try { records = JSON.parse(stored); } catch (e) { records = []; }
+            } else {
+                records = [
+                    { date: '2026-08-15', consumer: '阿忠', reason: '工资', type: '收入', mmk: 2568000, usd: 0, rate: null,
+                        note: '8月工资' },
+                    { date: '2026-08-15', consumer: '阿忠', reason: '房租', type: '支出', mmk: 500000, usd: 0, rate: null,
+                        note: '月租' },
+                    { date: '2026-08-15', consumer: '阿忠', reason: '兑换', type: '兑换', mmk: 2100000, usd: -600,
+                        rate: 3500, note: '美金换缅币' },
+                    { date: '2026-08-20', consumer: '小王', reason: '借款', type: '借出', mmk: 1100, usd: 0, rate: null,
+                        note: '小王借缅币' },
+                    { date: '2026-08-22', consumer: '小王', reason: '借款美金', type: '借出', mmk: 0, usd: 100, rate: null,
+                        note: '小王借美金' },
+                    { date: '2026-09-01', consumer: '阿忠', reason: '买菜', type: '支出', mmk: 200833, usd: 0, rate: null,
+                        note: '9月1日买菜' },
+                ];
+            }
+            records = records.map(r => ({ ...r, rate: r.rate || null }));
+            const savedRate = localStorage.getItem('manual_rate');
+            if (savedRate !== null) {
+                const parsed = parseFloat(savedRate);
+                if (!isNaN(parsed) && parsed > 0) manualRate = parsed;
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            localStorage.setItem('manual_rate', String(manualRate));
+        }
+
+        function formatNumber(n) {
+            if (n === undefined || n === null) return '0';
+            return n.toLocaleString('en-US');
+        }
+
+        function getMonthStart(year, month) { return new Date(year, month, 1); }
+
+        function getMonthEnd(year, month) { return new Date(year, month + 1, 1); }
+
+        function getYearStart(year) { return new Date(year, 0, 1); }
+
+        function getYearEnd(year) { return new Date(year + 1, 0, 1); }
+
+        // ============================================================
+        //  借还款工具函数
+        // ============================================================
+        function getLoanRecords(filterName) {
+            let list = records.filter(r => r.type === '借出' || r.type === '还入');
+            if (filterName && filterName !== 'all') {
+                list = list.filter(r => r.consumer === filterName);
+            }
+            return list;
+        }
+
+        function calcLoanBalance(name) {
+            const loans = records.filter(r => r.consumer === name && (r.type === '借出' || r.type === '还入'));
+            let balanceK = 0;
+            let balanceUsd = 0;
+            loans.forEach(r => {
+                if (r.type === '借出') {
+                    balanceK += r.mmk || 0;
+                    balanceUsd += r.usd || 0;
+                } else if (r.type === '还入') {
+                    balanceK -= r.mmk || 0;
+                    balanceUsd -= r.usd || 0;
+                }
+            });
+            return { balanceK, balanceUsd };
+        }
+
+        function getUniqueNames() {
+            const names = records.map(r => r.consumer).filter(Boolean);
+            return [...new Set(names)];
+        }
+
+        // ============================================================
+        //  结余计算 - 返回带原始索引的数组
+        // ============================================================
+        function calcRunningBalancesWithIndex(recordsSorted) {
+            let balanceK = 0;
+            let balanceUsd = 0;
+            return recordsSorted.map((r, idx) => {
+                const mmk = r.mmk || 0;
+                const usd = r.usd || 0;
+                if (r.type === '收入') {
+                    balanceK += mmk;
+                    balanceUsd += usd;
+                } else if (r.type === '支出') {
+                    balanceK -= mmk;
+                    balanceUsd -= usd;
+                } else if (r.type === '兑换') {
+                    balanceUsd += usd;
+                    balanceK += mmk;
+                } else if (r.type === '借出') {
+                    balanceK -= mmk;
+                    balanceUsd -= usd;
+                } else if (r.type === '还入') {
+                    balanceK += mmk;
+                    balanceUsd += usd;
+                }
+                return { ...r, runningBalanceK: balanceK, runningBalanceUsd: balanceUsd, _origIdx: idx };
+            });
+        }
+
+        // ============================================================
+        //  统计核心函数
+        // ============================================================
+        function getMonthRecords(year, month) {
+            const start = getMonthStart(year, month);
+            const end = getMonthEnd(year, month);
+            return records.filter(r => {
+                const d = new Date(r.date);
+                return d >= start && d < end;
+            });
+        }
+
+        function getYearRecords(year) {
+            const start = getYearStart(year);
+            const end = getYearEnd(year);
+            return records.filter(r => {
+                const d = new Date(r.date);
+                return d >= start && d < end;
+            });
+        }
+
+        function sumByType(arr, type, key) {
+            return arr.filter(r => r.type === type).reduce((acc, r) => acc + (r[key] || 0), 0);
+        }
+
+        // ============================================================
+        //  计算某个时间点之前的累计结余
+        // ============================================================
+        function getBalanceBeforeDate(targetDate) {
+            let balanceK = 0;
+            let balanceUsd = 0;
+            const sorted = [...records].sort((a, b) => new Date(a.date) - new Date(b.date));
+            for (const r of sorted) {
+                const d = new Date(r.date);
+                if (d >= targetDate) break;
+                const mmk = r.mmk || 0;
+                const usd = r.usd || 0;
+                if (r.type === '收入') {
+                    balanceK += mmk;
+                    balanceUsd += usd;
+                } else if (r.type === '支出') {
+                    balanceK -= mmk;
+                    balanceUsd -= usd;
+                } else if (r.type === '兑换') {
+                    balanceUsd += usd;
+                    balanceK += mmk;
+                } else if (r.type === '借出') {
+                    balanceK -= mmk;
+                    balanceUsd -= usd;
+                } else if (r.type === '还入') {
+                    balanceK += mmk;
+                    balanceUsd += usd;
+                }
+            }
+            return { balanceK, balanceUsd };
+        }
+
+        // ============================================================
+        //  渲染：日常汇总
+        // ============================================================
+        function renderSummary() {
+            const year = viewYear;
+            const month = viewMonth;
+
+            const monthRecords = getMonthRecords(year, month);
+            const monthIncomeMmk = sumByType(monthRecords, '收入', 'mmk');
+            const monthIncomeUsd = sumByType(monthRecords, '收入', 'usd');
+            const monthExpenseMmk = sumByType(monthRecords, '支出', 'mmk');
+            const monthExpenseUsd = sumByType(monthRecords, '支出', 'usd');
+            const monthExchangeMmk = sumByType(monthRecords, '兑换', 'mmk');
+            const monthExchangeUsd = sumByType(monthRecords, '兑换', 'usd');
+
+            const yearRecords = getYearRecords(year);
+            const yearIncomeMmk = sumByType(yearRecords, '收入', 'mmk');
+            const yearIncomeUsd = sumByType(yearRecords, '收入', 'usd');
+            const yearExpenseMmk = sumByType(yearRecords, '支出', 'mmk');
+            const yearExpenseUsd = sumByType(yearRecords, '支出', 'usd');
+
+            // 计算月份结余（从所有记录中累计到该月最后一笔）
+            let monthBalanceK = 0;
+            let monthBalanceUsd = 0;
+
+            const monthStart = getMonthStart(year, month);
+            const monthEnd = getMonthEnd(year, month);
+
+            const beforeMonth = getBalanceBeforeDate(monthStart);
+            let runningK = beforeMonth.balanceK;
+            let runningUsd = beforeMonth.balanceUsd;
+
+            const sortedMonth = [...monthRecords].sort((a, b) => new Date(a.date) - new Date(b.date));
+            for (const r of sortedMonth) {
+                const mmk = r.mmk || 0;
+                const usd = r.usd || 0;
+                if (r.type === '收入') {
+                    runningK += mmk;
+                    runningUsd += usd;
+                } else if (r.type === '支出') {
+                    runningK -= mmk;
+                    runningUsd -= usd;
+                } else if (r.type === '兑换') {
+                    runningUsd += usd;
+                    runningK += mmk;
+                } else if (r.type === '借出') {
+                    runningK -= mmk;
+                    runningUsd -= usd;
+                } else if (r.type === '还入') {
+                    runningK += mmk;
+                    runningUsd += usd;
+                }
+            }
+            monthBalanceK = runningK;
+            monthBalanceUsd = runningUsd;
+
+            if (monthRecords.length === 0) {
+                monthBalanceK = beforeMonth.balanceK;
+                monthBalanceUsd = beforeMonth.balanceUsd;
+            }
+
+            // 总资产（所有记录）
+            let totalBalanceK = 0;
+            let totalBalanceUsd = 0;
+            const allSorted = [...records].sort((a, b) => new Date(a.date) - new Date(b.date));
+            allSorted.forEach(r => {
+                const mmk = r.mmk || 0;
+                const usd = r.usd || 0;
+                if (r.type === '收入') {
+                    totalBalanceK += mmk;
+                    totalBalanceUsd += usd;
+                } else if (r.type === '支出') {
+                    totalBalanceK -= mmk;
+                    totalBalanceUsd -= usd;
+                } else if (r.type === '兑换') {
+                    totalBalanceUsd += usd;
+                    totalBalanceK += mmk;
+                } else if (r.type === '借出') {
+                    totalBalanceK -= mmk;
+                    totalBalanceUsd -= usd;
+                } else if (r.type === '还入') {
+                    totalBalanceK += mmk;
+                    totalBalanceUsd += usd;
+                }
+            });
+
+            const refRate = manualRate;
+            const totalAssetUsdToK = totalBalanceUsd * refRate;
+            const totalAssetKToUsd = totalBalanceK / refRate;
+
+            const monthLabel = year + '年' + (month + 1) + '月';
+            const yearLabel = year + '年';
+            const balColor = (v) => v >= 0 ? '#0f7b3a' : '#c2413a';
+
+            document.getElementById('summaryGridRow1').innerHTML = `
+                <div class="card income">
+                    <div class="label">📈 ${monthLabel} 收入</div>
+                    <div class="amount">${formatNumber(monthIncomeMmk)} <small>K</small></div>
+                    <div style="font-size:13px;font-weight:500;">${formatNumber(monthIncomeUsd)} <small>$</small></div>
+                </div>
+                <div class="card expense">
+                    <div class="label">📉 ${monthLabel} 支出</div>
+                    <div class="amount">${formatNumber(monthExpenseMmk)} <small>K</small></div>
+                    <div style="font-size:13px;font-weight:500;">${formatNumber(monthExpenseUsd)} <small>$</small></div>
+                </div>
+                <div class="card income">
+                    <div class="label">📊 ${yearLabel} 总收入</div>
+                    <div class="amount">${formatNumber(yearIncomeMmk)} <small>K</small></div>
+                    <div style="font-size:13px;font-weight:500;">${formatNumber(yearIncomeUsd)} <small>$</small></div>
+                </div>
+                <div class="card expense">
+                    <div class="label">📊 ${yearLabel} 总支出</div>
+                    <div class="amount">${formatNumber(yearExpenseMmk)} <small>K</small></div>
+                    <div style="font-size:13px;font-weight:500;">${formatNumber(yearExpenseUsd)} <small>$</small></div>
+                </div>
+                <div class="card total">
+                    <div class="label">🔄 ${monthLabel} 兑换</div>
+                    <div class="amount">${formatNumber(monthExchangeMmk)} <small>K</small></div>
+                    <div style="font-size:13px;font-weight:500;">${formatNumber(monthExchangeUsd)} <small>$</small></div>
+                </div>
+            `;
+
+            document.getElementById('summaryGridRow2').innerHTML = `
+                <div class="card total">
+                    <div class="label">⚖️ ${monthLabel} 结余</div>
+                    <div class="amount" style="color:${balColor(monthBalanceK)}">${formatNumber(monthBalanceK)} <small>K</small></div>
+                    <div style="font-size:13px;font-weight:500;color:${balColor(monthBalanceUsd)}">${formatNumber(monthBalanceUsd)} <small>$</small></div>
+                </div>
+                <div class="card asset">
+                    <div class="label">🏦 总美资产 (折合缅币)</div>
+                    <div class="amount">${formatNumber(totalAssetUsdToK)} <small>K</small></div>
+                    <div style="font-size:12px;color:#7e8f9e;">汇率 1 USD = ${refRate} K</div>
+                </div>
+                <div class="card asset">
+                    <div class="label">🏠 总缅资产 (折合美元)</div>
+                    <div class="amount">${formatNumber(totalAssetKToUsd)} <small>$</small></div>
+                    <div style="font-size:12px;color:#7e8f9e;">汇率 1 USD = ${refRate} K</div>
+                </div>
+                <div class="card mmk-bg">
+                    <div class="label">💰 总结余缅币 (K)</div>
+                    <div class="amount">${formatNumber(totalBalanceK)}</div>
+                    <div style="font-size:12px;color:#1a5a2a;">所有记录独立累计</div>
+                </div>
+                <div class="card usd-bg">
+                    <div class="label">💵 总结余美元 ($)</div>
+                    <div class="amount">${formatNumber(totalBalanceUsd)}</div>
+                    <div style="font-size:12px;color:#2a5a2a;">所有记录独立累计</div>
+                </div>
+                <div class="card rate-card" style="grid-column: span 1; background:#fff8e6; border-color:#d4b86a;">
+                    <div class="label">💱 当前汇率</div>
+                    <div class="amount">
+                        <input type="number" id="manualRateInput" step="0.01" value="${manualRate}" style="width:100%;padding:6px 8px;border:2px solid #d4b86a;border-radius:10px;font-size:20px;font-weight:700;text-align:center;background:#fffdf0;color:#6a4a1a;">
+                    </div>
+                    <div style="font-size:12px;color:#8a7a4a;">自行填写，用于资产折算</div>
+                </div>
+            `;
+
+            const rateInput = document.getElementById('manualRateInput');
+            if (rateInput) {
+                rateInput.addEventListener('input', function() {
+                    const val = parseFloat(this.value);
+                    if (!isNaN(val) && val > 0) {
+                        manualRate = val;
+                        saveData();
+                        renderSummary();
+                        const exRateInput = document.getElementById('exchangeRateInput');
+                        if (exRateInput) exRateInput.value = val;
+                    }
+                });
+                rateInput.addEventListener('change', function() {
+                    const val = parseFloat(this.value);
+                    if (isNaN(val) || val <= 0) {
+                        this.value = manualRate;
+                    }
+                });
+            }
+        }
+
+        // ============================================================
+        //  渲染：日常表格（按月份筛选）
+        // ============================================================
+        function renderTable() {
+            const tbody = document.getElementById('recordsBody');
+
+            // ---- 核心改动：按当前选中的年份/月份筛选记录 ----
+            const monthStart = getMonthStart(viewYear, viewMonth);
+            const monthEnd = getMonthEnd(viewYear, viewMonth);
+            const monthRecords = records.filter(r => {
+                const d = new Date(r.date);
+                return d >= monthStart && d < monthEnd;
+            });
+
+            if (monthRecords.length === 0) {
+                const monthLabel = viewYear + '年' + (viewMonth + 1) + '月';
+                tbody.innerHTML = `<tr><td colspan="11" class="empty-msg">📭 ${monthLabel} 暂无记录</td></tr>`;
+                document.getElementById('recordCount').textContent = `共 ${records.length} 笔（当前月 ${monthRecords.length} 笔）`;
+                return;
+            }
+
+            // 对筛选后的记录按日期升序排列，计算结余
+            const sortedAsc = [...monthRecords].sort((a, b) => new Date(a.date) - new Date(b.date));
+            // 注意：这里传入的数组是 monthRecords 的子集，_origIdx 需要基于原始 records 数组
+            const withBalance = sortedAsc.map((r, idx) => {
+                // 找到该记录在原始 records 中的真实索引
+                const realIdx = records.indexOf(r);
+                // 计算结余（只针对当前月份的数据，但结余需要从月初开始累计）
+                // 为了正确显示结余，我们需要从月初开始逐笔累计
+                // 但由于 monthRecords 已经是从月初到月末的所有记录，我们可以直接在这里计算
+                // 但为了保持和之前逻辑一致，我们使用全局累计方式
+                return { ...r, _origIdx: realIdx };
+            });
+
+            // 重新计算结余：从该月第一笔开始累计
+            let runningK = 0;
+            let runningUsd = 0;
+            // 但结余应该从月初之前的累计开始，所以先获取月初之前的结余
+            const beforeMonth = getBalanceBeforeDate(monthStart);
+            runningK = beforeMonth.balanceK;
+            runningUsd = beforeMonth.balanceUsd;
+
+            // 逐笔累加，生成带结余的数据
+            const withRunningBalance = sortedAsc.map((r) => {
+                const mmk = r.mmk || 0;
+                const usd = r.usd || 0;
+                if (r.type === '收入') {
+                    runningK += mmk;
+                    runningUsd += usd;
+                } else if (r.type === '支出') {
+                    runningK -= mmk;
+                    runningUsd -= usd;
+                } else if (r.type === '兑换') {
+                    runningUsd += usd;
+                    runningK += mmk;
+                } else if (r.type === '借出') {
+                    runningK -= mmk;
+                    runningUsd -= usd;
+                } else if (r.type === '还入') {
+                    runningK += mmk;
+                    runningUsd += usd;
+                }
+                const realIdx = records.indexOf(r);
+                return { ...r, runningBalanceK: runningK, runningBalanceUsd: runningUsd, _origIdx: realIdx };
+            });
+
+            // 倒序显示（最新的在上面）
+            const sortedDesc = [...withRunningBalance].reverse();
+
+            let html = '';
+            sortedDesc.forEach((r) => {
+                const realIdx = r._origIdx;
+                if (realIdx === undefined || realIdx === null) return;
+
+                if (editingRowIndex === realIdx) {
+                    html += renderEditingRow(r, realIdx);
+                } else {
+                    html += renderViewRow(r, realIdx);
+                }
+            });
+            tbody.innerHTML = html;
+            document.getElementById('recordCount').textContent = `共 ${records.length} 笔（当前月 ${monthRecords.length} 笔）`;
+
+            // 绑定事件
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const idx = parseInt(this.dataset.index);
+                    startEditing(idx);
+                });
+            });
+
+            document.querySelectorAll('.del-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const idx = parseInt(this.dataset.index);
+                    if (confirm('确定删除这笔记录吗？')) {
+                        records.splice(idx, 1);
+                        editingRowIndex = null;
+                        saveData();
+                        refreshAll();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.save-edit-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const idx = parseInt(this.dataset.index);
+                    saveEditing(idx);
+                });
+            });
+            document.querySelectorAll('.cancel-edit-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const idx = parseInt(this.dataset.index);
+                    cancelEditing(idx);
+                });
+            });
+            document.querySelectorAll('.editing-row input, .editing-row select').forEach(el => {
+                el.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const idx = parseInt(this.closest('tr').dataset.index);
+                        saveEditing(idx);
+                    }
+                });
+            });
+        }
+
+        function renderViewRow(r, realIdx) {
+            let typeClass = 'expense';
+            let typeLabel = r.type;
+            if (r.type === '收入') typeClass = 'income';
+            else if (r.type === '兑换') typeClass = 'exchange';
+            else if (r.type === '借出') typeClass = 'loan-out';
+            else if (r.type === '还入') typeClass = 'loan-in';
+
+            const balColorK = r.runningBalanceK >= 0 ? '#0f7b3a' : '#c2413a';
+            const balColorUsd = r.runningBalanceUsd >= 0 ? '#0f7b3a' : '#c2413a';
+            const rateDisplay = (r.rate !== null && r.rate !== undefined && r.rate !== '') ? r.rate : '--';
+            return `<tr>
+                <td>${r.date}</td>
+                <td>${r.consumer}</td>
+                <td>${r.reason}</td>
+                <td><span class="badge ${typeClass}">${typeLabel}</span></td>
+                <td>${formatNumber(r.mmk)}</td>
+                <td>${formatNumber(r.usd)}</td>
+                <td>${rateDisplay}</td>
+                <td style="color:${balColorK};font-weight:600;">${formatNumber(r.runningBalanceK)}</td>
+                <td style="color:${balColorUsd};font-weight:600;">${formatNumber(r.runningBalanceUsd)}</td>
+                <td class="note-cell" title="${r.note || ''}">${r.note || ''}</td>
+                <td>
+                    <button class="edit-btn" data-index="${realIdx}" title="编辑">✎</button>
+                    <button class="del-btn" data-index="${realIdx}" title="删除">✕</button>
+                </td>
+            </tr>`;
+        }
+
+        function renderEditingRow(r, realIdx) {
+            const typeOptions = ['支出', '收入', '借出', '还入'];
+            const typeOpts = typeOptions.map(t => 
+                `<option value="${t}" ${t === r.type ? 'selected' : ''}>${t}</option>`
+            ).join('');
+            
+            const rateVal = (r.rate !== null && r.rate !== undefined && r.rate !== '') ? r.rate : '';
+            
+            return `<tr class="editing-row" data-index="${realIdx}">
+                <td class="editing-cell"><input type="date" class="edit-date" value="${r.date}"></td>
+                <td class="editing-cell"><input type="text" class="edit-consumer" value="${r.consumer || ''}"></td>
+                <td class="editing-cell"><input type="text" class="edit-reason" value="${r.reason || ''}"></td>
+                <td class="editing-cell"><select class="edit-type">${typeOpts}</select></td>
+                <td class="editing-cell"><input type="number" class="edit-mmk" step="1" value="${r.mmk || 0}"></td>
+                <td class="editing-cell"><input type="number" class="edit-usd" step="0.01" value="${r.usd || 0}"></td>
+                <td class="editing-cell"><input type="number" class="edit-rate" step="0.01" value="${rateVal}" placeholder="--"></td>
+                <td style="color:#aaa;font-size:12px;">${formatNumber(r.runningBalanceK)}</td>
+                <td style="color:#aaa;font-size:12px;">${formatNumber(r.runningBalanceUsd)}</td>
+                <td class="editing-cell"><input type="text" class="edit-note" value="${r.note || ''}" placeholder="备注"></td>
+                <td>
+                    <button class="save-edit-btn" data-index="${realIdx}">💾 保存</button>
+                    <button class="cancel-edit-btn" data-index="${realIdx}">✕</button>
+                </td>
+            </tr>`;
+        }
+
+        function startEditing(index) {
+            if (editingRowIndex !== null && editingRowIndex !== index) {
+                cancelEditing(editingRowIndex);
+            }
+            editingRowIndex = index;
+            renderTable();
+            const editingRow = document.querySelector(`.editing-row[data-index="${index}"]`);
+            if (editingRow) {
+                editingRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const firstInput = editingRow.querySelector('input');
+                if (firstInput) setTimeout(() => firstInput.focus(), 300);
+            }
+        }
+
+        function saveEditing(index) {
+            const row = document.querySelector(`.editing-row[data-index="${index}"]`);
+            if (!row) {
+                alert('找不到编辑行，请刷新后重试');
+                return;
+            }
+
+            const date = row.querySelector('.edit-date').value;
+            const consumer = row.querySelector('.edit-consumer').value.trim();
+            const reason = row.querySelector('.edit-reason').value.trim();
+            const type = row.querySelector('.edit-type').value;
+            const mmk = parseFloat(row.querySelector('.edit-mmk').value) || 0;
+            const usd = parseFloat(row.querySelector('.edit-usd').value) || 0;
+            const rateInput = row.querySelector('.edit-rate').value;
+            const rate = rateInput !== '' ? parseFloat(rateInput) : null;
+            const note = row.querySelector('.edit-note').value.trim();
+
+            if (!date) { alert('日期不能为空'); return; }
+            if (!consumer) { alert('姓名不能为空'); return; }
+            if (!reason) { alert('用途不能为空'); return; }
+            if (mmk === 0 && usd === 0) { alert('请输入至少一个金额'); return; }
+
+            records[index] = { date, consumer, reason, type, mmk, usd, rate, note };
+            editingRowIndex = null;
+            saveData();
+            refreshAll();
+            document.querySelector('.table-wrap').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelEditing(index) {
+            if (editingRowIndex === index) {
+                editingRowIndex = null;
+                renderTable();
+            }
+        }
+
+        // ============================================================
+        //  渲染：借还款页面
+        // ============================================================
+        function renderLoanPage() {
+            const filterName = document.getElementById('loanFilterName').value;
+            const loanRecords = getLoanRecords(filterName);
+
+            const names = getUniqueNames();
+            const sel = document.getElementById('loanFilterName');
+            const currentVal = sel.value;
+            sel.innerHTML = '<option value="all">全部</option>' +
+                names.map(n => `<option value="${n}">${n}</option>`).join('');
+            sel.value = currentVal;
+
+            const tbody = document.getElementById('loanBody');
+            if (loanRecords.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-msg">📭 暂无借还款记录</td></tr>`;
+            } else {
+                const sorted = [...loanRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
+                let html = '';
+                sorted.forEach((r, idx) => {
+                    const realIdx = records.indexOf(r);
+                    const cls = r.type === '借出' ? 'loan-out' : 'loan-in';
+                    const sign = r.type === '借出' ? '➖' : '➕';
+                    html += `<tr>
+                        <td>${r.date}</td>
+                        <td>${r.consumer}</td>
+                        <td><span class="badge ${cls}">${sign} ${r.type}</span></td>
+                        <td>${formatNumber(r.mmk)}</td>
+                        <td>${formatNumber(r.usd)}</td>
+                        <td>${r.note || ''}</td>
+                        <td><button class="del-btn" data-index="${realIdx}">✕</button></td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+            }
+
+            const names2 = getUniqueNames();
+            let summaryHtml = '';
+            let totalNetK = 0;
+            let totalNetUsd = 0;
+            names2.forEach(name => {
+                const { balanceK, balanceUsd } = calcLoanBalance(name);
+                totalNetK += balanceK;
+                totalNetUsd += balanceUsd;
+                const color = balanceK > 0 || balanceUsd > 0 ? '#d48a1a' : (balanceK < 0 || balanceUsd < 0 ? '#0f7b3a' :
+                    '#5a6a7a');
+                summaryHtml += `
+                    <div class="card loan">
+                        <div class="label">${name}</div>
+                        <div class="amount" style="color:${color}">
+                            ${formatNumber(balanceK)} <small>K</small>
+                            ${balanceUsd !== 0 ? '&nbsp;/&nbsp; ' + formatNumber(balanceUsd) + ' <small>$</small>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            if (!summaryHtml) {
+                summaryHtml = `<div class="card" style="grid-column:span 5;text-align:center;color:#aaa;">暂无借还款数据</div>`;
+            }
+            document.getElementById('loanSummary').innerHTML = summaryHtml;
+            document.getElementById('netLoanTotalK').textContent = formatNumber(totalNetK);
+            document.getElementById('netLoanTotalUsd').textContent = formatNumber(totalNetUsd);
+
+            document.querySelectorAll('#loanBody .del-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.index);
+                    if (confirm('确定删除这笔记录吗？')) {
+                        records.splice(idx, 1);
+                        saveData();
+                        refreshAll();
+                    }
+                });
+            });
+        }
+
+        // ============================================================
+        //  更新下拉列表
+        // ============================================================
+        function updateDatalists() {
+            const consumers = [...new Set(records.map(r => r.consumer).filter(Boolean))];
+            const reasons = [...new Set(records.map(r => r.reason).filter(Boolean))];
+            document.getElementById('consumerList').innerHTML = consumers.map(c => `<option value="${c}">`).join('');
+            document.getElementById('reasonList').innerHTML = reasons.map(r => `<option value="${r}">`).join('');
+        }
+
+        // ============================================================
+        //  刷新全部
+        // ============================================================
+        function refreshAll() {
+            renderSummary();
+            renderTable();
+            renderLoanPage();
+            updateDatalists();
+            document.getElementById('monthLabel').textContent = viewYear + '年' + (viewMonth + 1) + '月';
+            const exRateInput = document.getElementById('exchangeRateInput');
+            if (exRateInput) exRateInput.value = manualRate;
+        }
+
+        // ============================================================
+        //  导出/导入
+        // ============================================================
+        function exportBackup() {
+            const data = {
+                version: '1.0',
+                exportedAt: new Date().toISOString(),
+                manualRate: manualRate,
+                records: records
+            };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const dateStr = new Date().toISOString().slice(0, 10);
+            a.download = `记账本_备份_${dateStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importBackup(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.records || !Array.isArray(data.records)) {
+                        alert('❌ 无效的备份文件，请检查');
+                        return;
+                    }
+                    if (!confirm(`⚠️ 导入将覆盖当前所有数据（共 ${data.records.length} 条记录），确定继续吗？`)) {
+                        return;
+                    }
+                    records = data.records.map(r => ({ ...r, rate: r.rate || null }));
+                    if (data.manualRate && !isNaN(data.manualRate) && data.manualRate > 0) {
+                        manualRate = data.manualRate;
+                    }
+                    editingRowIndex = null;
+                    saveData();
+                    refreshAll();
+                    alert(`✅ 导入成功！共 ${records.length} 条记录，汇率 ${manualRate}`);
+                } catch (err) {
+                    alert('❌ 文件解析失败，请确认是有效的备份文件');
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ============================================================
+        //  添加记录
+        // ============================================================
+        function addRecord() {
+            const date = document.getElementById('dateInput').value;
+            const consumer = document.getElementById('consumerInput').value.trim();
+            const reason = document.getElementById('reasonInput').value.trim();
+            const type = document.getElementById('typeInput').value;
+            const mmk = parseFloat(document.getElementById('mmkInput').value) || 0;
+            const usd = parseFloat(document.getElementById('usdInput').value) || 0;
+            const note = document.getElementById('noteInput').value.trim();
+
+            if (!date) { alert('请选择日期'); return; }
+            if (!consumer) { alert('请输入姓名'); return; }
+            if (!reason) { alert('请输入用途'); return; }
+            if (mmk === 0 && usd === 0) { alert('请输入至少一个金额'); return; }
+
+            if (editingRowIndex !== null) {
+                cancelEditing(editingRowIndex);
+            }
+
+            records.push({ date, consumer, reason, type, mmk, usd, rate: null, note });
+            saveData();
+            refreshAll();
+
+            document.getElementById('consumerInput').value = '';
+            document.getElementById('reasonInput').value = '';
+            document.getElementById('mmkInput').value = '0';
+            document.getElementById('usdInput').value = '0';
+            document.getElementById('noteInput').value = '';
+            document.getElementById('dateInput').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('typeInput').value = '支出';
+            document.querySelector('.table-wrap').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ============================================================
+        //  兑换
+        // ============================================================
+        function addExchange() {
+            const date = document.getElementById('dateInput').value;
+            const consumer = document.getElementById('consumerInput').value.trim() || '兑换';
+            const usd = parseFloat(document.getElementById('exchangeUsdInput').value) || 0;
+            const rate = parseFloat(document.getElementById('exchangeRateInput').value) || 3500;
+            const mmk = Math.round(usd * rate);
+            const note = '美金兑换缅币';
+
+            if (!date) { alert('请选择日期'); return; }
+            if (usd <= 0) { alert('请输入要兑换的正数美金'); return; }
+
+            let currentUsdBalance = 0;
+            const sorted = [...records].sort((a, b) => new Date(a.date) - new Date(b.date));
+            sorted.forEach(r => {
+                const u = r.usd || 0;
+                if (r.type === '收入') currentUsdBalance += u;
+                else if (r.type === '支出') currentUsdBalance -= u;
+                else if (r.type === '兑换') currentUsdBalance += u;
+                else if (r.type === '借出') currentUsdBalance -= u;
+                else if (r.type === '还入') currentUsdBalance += u;
+            });
+            if (currentUsdBalance < usd) {
+                if (!confirm(`当前美金结余 ${formatNumber(currentUsdBalance)} $，兑换 ${usd} $ 可能不足，确定继续吗？`)) {
+                    return;
+                }
+            }
+
+            if (editingRowIndex !== null) {
+                cancelEditing(editingRowIndex);
+            }
+
+            records.push({
+                date,
+                consumer,
+                reason: '兑换',
+                type: '兑换',
+                mmk: mmk,
+                usd: -usd,
+                rate: rate,
+                note: note + ` (${usd} USD × ${rate})`
+            });
+            saveData();
+            refreshAll();
+            document.getElementById('exchangeUsdInput').value = '0';
+            document.getElementById('exchangeRateInput').value = manualRate;
+            document.getElementById('exchangeMmkOutput').value = '0';
+            document.querySelector('.table-wrap').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function setupExchangeCalc() {
+            const usdInput = document.getElementById('exchangeUsdInput');
+            const rateInput = document.getElementById('exchangeRateInput');
+            const mmkOutput = document.getElementById('exchangeMmkOutput');
+
+            function calc() {
+                const usd = parseFloat(usdInput.value) || 0;
+                const rate = parseFloat(rateInput.value) || 3500;
+                mmkOutput.value = Math.round(usd * rate);
+            }
+            usdInput.addEventListener('input', calc);
+            rateInput.addEventListener('input', calc);
+        }
+
+        function changeMonth(delta) {
+            viewMonth += delta;
+            if (viewMonth > 11) { viewMonth = 0;
+                viewYear += 1; } else if (viewMonth < 0) { viewMonth = 11;
+                viewYear -= 1; }
+            refreshAll();
+        }
+
+        // ============================================================
+        //  Tab 切换
+        // ============================================================
+        document.querySelectorAll('.tabs button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+                document.getElementById(tab === 'daily' ? 'tabDaily' : 'tabLoan').classList.add('active');
+                if (tab === 'loan') renderLoanPage();
+            });
+        });
+
+        document.getElementById('loanFilterName').addEventListener('change', renderLoanPage);
+
+        // ============================================================
+        //  初始化
+        // ============================================================
+        loadData();
+        document.getElementById('dateInput').value = new Date().toISOString().slice(0, 10);
+
+        document.getElementById('addBtn').addEventListener('click', addRecord);
+        document.getElementById('exchangeBtn').addEventListener('click', addExchange);
+
+        document.querySelectorAll('#formRow input, #formRow select').forEach(el => {
+            el.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') { e.preventDefault();
+                    addRecord(); }
+            });
+        });
+        document.querySelectorAll('#exchangeRow input').forEach(el => {
+            el.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') { e.preventDefault();
+                    addExchange(); }
+            });
+        });
+
+        document.getElementById('prevMonthBtn').addEventListener('click', () => changeMonth(-1));
+        document.getElementById('nextMonthBtn').addEventListener('click', () => changeMonth(1));
+
+        document.getElementById('exportBtn').addEventListener('click', exportBackup);
+        document.getElementById('importBtn').addEventListener('click', function() {
+            document.getElementById('importFileInput').click();
+        });
+        document.getElementById('importFileInput').addEventListener('change', function(e) {
+            if (this.files && this.files.length > 0) {
+                importBackup(this.files[0]);
+                this.value = '';
+            }
+        });
+
+        setupExchangeCalc();
+        refreshAll();
+
+        setTimeout(() => {
+            const rateInput = document.getElementById('manualRateInput');
+            if (rateInput) {
+                rateInput.addEventListener('input', function() {
+                    const val = parseFloat(this.value);
+                    if (!isNaN(val) && val > 0) {
+                        manualRate = val;
+                        saveData();
+                        renderSummary();
+                        const exRateInput = document.getElementById('exchangeRateInput');
+                        if (exRateInput) exRateInput.value = val;
+                    }
+                });
+            }
+        }, 50);
+    </script>
+</body>
+</html>
